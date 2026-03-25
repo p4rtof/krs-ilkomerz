@@ -17,19 +17,27 @@ export async function GET() {
       const td = $(el).find("td");
 
       if (td.length === 1) {
-        currentDay = $(td.eq(0)).text().trim();
-      } else if (td.length >= 8) {
+        currentDay = $(td.eq(0)).text().trim().replace(/'/g, "");
+      }
+      else if (td.length >= 8) {
         const jamRaw = td.eq(0).text().trim();
         const matkulRaw = td.eq(1).text().trim();
         const tipeKelasRaw = td.eq(2).text().trim();
         const ruangan = td.eq(4).text().trim();
-        const semester = parseInt(td.eq(7).text().trim()); 
+        const semester = parseInt(td.eq(7).text().trim());
 
         if (!isNaN(semester)) {
           const [kode, ...namaArr] = matkulRaw.split("-");
+          const kodeMatkul = kode.trim();
           const namaMatkul = namaArr.join("-").trim();
+
           const [tipe, paralel] = tipeKelasRaw.split("/");
           const [jamMulai, jamSelesai] = jamRaw.split("-");
+
+          let sksAkurat = 3; 
+          if (kodeMatkul === "KOM120G"|| kodeMatkul === "KOM1304") {
+            sksAkurat = 2; 
+          }
 
           const sesiBaru = {
             tipe: tipe.trim(),
@@ -41,17 +49,17 @@ export async function GET() {
           };
 
           let matkulIndex = hasilJadwal.findIndex(
-            (m) => m.kode === kode.trim(),
+            (m) => m.kode === kodeMatkul && m.semester === semester,
           );
 
           if (matkulIndex !== -1) {
             hasilJadwal[matkulIndex].paralel.push(sesiBaru);
           } else {
             hasilJadwal.push({
-              kode: kode.trim(),
+              kode: kodeMatkul,
               nama: namaMatkul,
-              sks: 3,
-              semester: semester, 
+              sks: sksAkurat, 
+              semester: semester,
               paralel: [sesiBaru],
             });
           }

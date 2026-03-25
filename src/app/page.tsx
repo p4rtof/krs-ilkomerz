@@ -1,20 +1,22 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Image from "next/image"; // Jangan lupa kalau pakai foto brat.jpg
+import Image from "next/image"; 
 
 type TipeKegiatan = "K" | "P" | "R";
 type PilihanUser = Record<string, Record<TipeKegiatan, number>>;
 
-// --- FUNGSI HELPER UNTUK CEK BENTROK JAM ---
 const parseTime = (timeStr: string) => {
   const [h, m] = timeStr.split(":").map(Number);
   return h * 60 + m;
 };
 
+// --- FIX 1: Normalisasi hari saat cek bentrok ---
 const isOverlap = (s1: any, s2: any) => {
-  if (s1.hari !== s2.hari) return false;
-  // Cek apakah rentang waktu saling menimpa
+  const hari1 = s1.hari.replace(/'/g, ""); // "Jum'at" jadi "Jumat"
+  const hari2 = s2.hari.replace(/'/g, "");
+  
+  if (hari1 !== hari2) return false;
   return parseTime(s1.jam_mulai) < parseTime(s2.jam_selesai) && parseTime(s1.jam_selesai) > parseTime(s2.jam_mulai);
 };
 
@@ -24,7 +26,6 @@ export default function KrsSimulatorGacor() {
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // State untuk Notifikasi Error (Bentrok)
   const [toastMsg, setToastMsg] = useState<{title: string, desc: string, visible: boolean} | null>(null);
 
   useEffect(() => {
@@ -46,7 +47,6 @@ export default function KrsSimulatorGacor() {
 
   const showToast = (title: string, desc: string) => {
     setToastMsg({ title, desc, visible: true });
-    // Hilang otomatis setelah 5 detik
     setTimeout(() => {
       setToastMsg(prev => prev ? { ...prev, visible: false } : null);
     }, 5000);
@@ -90,18 +90,15 @@ export default function KrsSimulatorGacor() {
     return { top, height };
   };
 
-  // --- LOGIKA CERDAS: MENGAMBIL MATKUL BARU ---
   const toggleMatkul = (kode: string, matkulData: any) => {
     setPilihan((prev) => {
       const newPilihan = { ...prev };
       
-      // Jika sudah diambil, berarti mau dibatalkan (Hapus)
       if (newPilihan[kode]) {
         delete newPilihan[kode];
         return newPilihan;
       }
 
-      // Jika mau ditambah, cari kombinasi paralel yang KOSONG (tidak bentrok)
       const jenisTersedia = Array.from(new Set(matkulData.paralel.map((p: any) => p.tipe))) as string[];
       const bestPilihan: any = {};
       let clashingSession = null;
@@ -112,7 +109,6 @@ export default function KrsSimulatorGacor() {
         const unikParalels = Array.from(new Set(sesiTipeIni.map((p:any) => p.paralel))).sort() as number[];
 
         let foundSafe = false;
-        // Cek satu-satu paralel dari 1, 2, 3 dst.
         for (const pNo of unikParalels) {
           const sesiTarget = sesiTipeIni.filter((s:any) => s.paralel === pNo);
           let clashInParalel = false;
@@ -129,43 +125,38 @@ export default function KrsSimulatorGacor() {
           }
 
           if (!clashInParalel) {
-            bestPilihan[tipe] = pNo; // Menemukan paralel yang aman!
+            bestPilihan[tipe] = pNo; 
             foundSafe = true;
             break;
           }
         }
 
         if (!foundSafe) {
-          isCompletelyBlocked = true; // Tidak ada satupun paralel yang aman untuk tipe ini
+          isCompletelyBlocked = true; 
           break;
         }
       }
 
       if (isCompletelyBlocked && clashingSession) {
-        // TAMPILKAN POPUP ERROR DAN BATALKAN PENGAMBILAN
         showToast(
           "Gagal Menambah Mata Kuliah!",
-          `Seluruh jadwal ${matkulData.nama} bentrok. Salah satunya tertabrak dengan ${clashingSession.nama_matkul} (${clashingSession.tipe}) di hari ${clashingSession.hari} jam ${clashingSession.jam_mulai}. Silakan perbaiki jadwal sebelumnya.`
+          `Seluruh jadwal ${matkulData.nama} bentrok. Salah satunya tertabrak dengan ${clashingSession.nama_matkul} (${clashingSession.tipe}) di hari ${clashingSession.hari} jam ${clashingSession.jam_mulai}.`
         );
         return prev; 
       }
 
-      // Berhasil menemukan yang kosong, simpan!
       newPilihan[kode] = bestPilihan;
       return newPilihan;
     });
   };
 
-  // --- LOGIKA CEGAH BENTROK SAAT GANTI PARALEL ---
   const gantiParalel = (kode: string, matkulData: any, tipe: TipeKegiatan, val: number) => {
     const requestedSessions = matkulData.paralel.filter((p:any) => p.tipe === tipe && p.paralel === val);
     let clashingSession = null;
 
     for (const req of requestedSessions) {
       for (const active of jadwalAktif) {
-        // Abaikan jadwal yang sedang diganti posisinya
         if (active.kode === kode && active.tipe === tipe) continue;
-
         if (isOverlap(req, active)) {
           clashingSession = active;
           break;
@@ -175,7 +166,6 @@ export default function KrsSimulatorGacor() {
     }
 
     if (clashingSession) {
-      // TAMPILKAN POPUP ERROR DAN BATALKAN PERUBAHAN
       showToast(
         "Gagal Pindah Paralel!",
         `Paralel ${val} bentrok dengan ${clashingSession.nama_matkul} (${clashingSession.tipe}) pada hari ${clashingSession.hari} pukul ${clashingSession.jam_mulai}.`
@@ -183,7 +173,6 @@ export default function KrsSimulatorGacor() {
       return;
     }
 
-    // Jika aman, terapkan perubahan
     setPilihan((prev) => ({
       ...prev,
       [kode]: { ...prev[kode], [tipe]: val }
@@ -209,7 +198,6 @@ export default function KrsSimulatorGacor() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8 font-sans flex flex-col xl:flex-row gap-8 relative overflow-hidden">
       
-      {/* ================= TOAST NOTIFICATION (POPUP BENTROK) ================= */}
       <div className={`fixed bottom-8 right-8 max-w-sm w-full bg-white border-l-4 border-red-500 shadow-[0_20px_50px_rgb(0,0,0,0.12)] rounded-2xl p-4 transition-all duration-500 z-[100] ${toastMsg?.visible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
         <div className="flex gap-4 items-start">
           <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -225,16 +213,14 @@ export default function KrsSimulatorGacor() {
         </div>
       </div>
 
-      {/* ================= SIDEBAR (PANEL KIRI) ================= */}
       <div className="w-full xl:w-[380px] flex flex-col gap-6 relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
           
           <div className="flex items-center gap-4 relative z-10">
-            
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">KRS <span className="text-pink-500">ILKOMERZ.</span></h2>
-              <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Sistem Cerdas KRS</p>
+              <p className="text-[11px] font-bold text-slate-400 mt-1 tracking-wider">by Aaron</p>
             </div>
           </div>
 
@@ -297,7 +283,6 @@ export default function KrsSimulatorGacor() {
                               className="w-full p-2.5 pl-3 pr-8 text-[11px] border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-2 focus:ring-pink-500/50 focus:bg-white font-semibold text-slate-700 transition-all appearance-none cursor-pointer"
                               value={pilihan[matkul.kode]?.[tipe] || 1}
                               onChange={(e) => {
-                                // PANGGIL FUNGSI GANTI PARALEL (YANG ADA DETEKSI BENTROKNYA)
                                 gantiParalel(matkul.kode, matkul, tipe as TipeKegiatan, Number(e.target.value));
                               }}
                             >
@@ -323,7 +308,6 @@ export default function KrsSimulatorGacor() {
         </div>
       </div>
 
-      {/* ================= MAIN CONTENT (KALENDER + TABEL) ================= */}
       <div className="flex-1 flex flex-col gap-6 relative z-10">
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 px-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 gap-4">
           <div className="flex gap-4 md:gap-6 text-[11px] font-black tracking-widest text-slate-500">
@@ -372,7 +356,8 @@ export default function KrsSimulatorGacor() {
 
                 {days.map((day) => (
                   <div key={day} className="flex-1 relative border-l border-dashed border-slate-100 first:border-l-0" style={{ marginLeft: 0 }}>
-                    {jadwalAktif.filter((j) => j.hari === day).map((kelas, idx) => {
+                    {/* FIX 2: Normalisasi hari saat merender kalender */}
+                    {jadwalAktif.filter((j) => j.hari.replace(/'/g, "") === day).map((kelas, idx) => {
                       const pos = calculatePosition(kelas.jam_mulai, kelas.jam_selesai);
                       const styleKategori = theme[kelas.tipe as TipeKegiatan];
                       

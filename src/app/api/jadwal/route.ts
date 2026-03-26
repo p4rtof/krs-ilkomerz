@@ -13,13 +13,22 @@ export async function GET() {
     let currentDay = "";
     const hasilJadwal: any[] = [];
 
+    // daftar yang hanya 2 sks
+    const daftarSKS: Record<string, number> = {
+      "KOM120G": 2, // Orkom
+      "KOM1304": 2, // Grafika
+      "KOM1315" : 2, // keamanan informasi
+      "KOM1326" : 2, //Pengantar Kecerdasan Komputasional
+      "KOM1398" : 2, //Metode Penelitian dan Telaah Pustaka
+
+    };
+
     $("table tbody tr").each((_, el) => {
       const td = $(el).find("td");
 
       if (td.length === 1) {
         currentDay = $(td.eq(0)).text().trim().replace(/'/g, "");
-      }
-      else if (td.length >= 8) {
+      } else if (td.length >= 8) {
         const jamRaw = td.eq(0).text().trim();
         const matkulRaw = td.eq(1).text().trim();
         const tipeKelasRaw = td.eq(2).text().trim();
@@ -34,10 +43,8 @@ export async function GET() {
           const [tipe, paralel] = tipeKelasRaw.split("/");
           const [jamMulai, jamSelesai] = jamRaw.split("-");
 
-          let sksAkurat = 3; 
-          if (kodeMatkul === "KOM120G"|| kodeMatkul === "KOM1304") {
-            sksAkurat = 2; 
-          }
+          // 2. Tentukan SKS (Pakai daftarSKS atau default 3)
+          const sksAkurat = daftarSKS[kodeMatkul] || 3;
 
           const sesiBaru = {
             tipe: tipe.trim(),
@@ -58,7 +65,7 @@ export async function GET() {
             hasilJadwal.push({
               kode: kodeMatkul,
               nama: namaMatkul,
-              sks: sksAkurat, 
+              sks: sksAkurat,
               semester: semester,
               paralel: [sesiBaru],
             });

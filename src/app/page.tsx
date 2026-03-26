@@ -104,69 +104,73 @@ export default function KrsSimulatorGacor() {
   };
 
   const toggleMatkul = (kode: string, matkulData: any) => {
-    setPilihan((prev) => {
-      const newPilihan = { ...prev };
-
-      if (newPilihan[kode]) {
+    // 1. Kalau matkul sudah dipilih, langsung hapus (keluarkan dari setPilihan prev)
+    if (pilihan[kode]) {
+      setPilihan((prev) => {
+        const newPilihan = { ...prev };
         delete newPilihan[kode];
         return newPilihan;
-      }
+      });
+      return;
+    }
 
-      const jenisTersedia = Array.from(
-        new Set(matkulData.paralel.map((p: any) => p.tipe)),
-      ) as string[];
-      const bestPilihan: any = {};
-      let clashingSession = null;
-      let isCompletelyBlocked = false;
+    // 2. Kalau belum dipilih, hitung jadwal terbaik DILUAR setPilihan
+    const jenisTersedia = Array.from(
+      new Set(matkulData.paralel.map((p: any) => p.tipe)),
+    ) as string[];
+    const bestPilihan: any = {};
+    let clashingSession = null;
+    let isCompletelyBlocked = false;
 
-      for (const tipe of jenisTersedia) {
-        const sesiTipeIni = matkulData.paralel.filter(
-          (p: any) => p.tipe === tipe,
-        );
-        const unikParalels = Array.from(
-          new Set(sesiTipeIni.map((p: any) => p.paralel)),
-        ).sort() as number[];
+    for (const tipe of jenisTersedia) {
+      const sesiTipeIni = matkulData.paralel.filter((p: any) => p.tipe === tipe);
+      const unikParalels = Array.from(
+        new Set(sesiTipeIni.map((p: any) => p.paralel)),
+      ).sort() as number[];
 
-        let foundSafe = false;
-        for (const pNo of unikParalels) {
-          const sesiTarget = sesiTipeIni.filter((s: any) => s.paralel === pNo);
-          let clashInParalel = false;
+      let foundSafe = false;
+      for (const pNo of unikParalels) {
+        const sesiTarget = sesiTipeIni.filter((s: any) => s.paralel === pNo);
+        let clashInParalel = false;
 
-          for (const s of sesiTarget) {
-            for (const active of jadwalAktif) {
-              if (isOverlap(s, active)) {
-                clashInParalel = true;
-                clashingSession = active;
-                break;
-              }
+        for (const s of sesiTarget) {
+          for (const active of jadwalAktif) {
+            if (isOverlap(s, active)) {
+              clashInParalel = true;
+              clashingSession = active;
+              break;
             }
-            if (clashInParalel) break;
           }
-
-          if (!clashInParalel) {
-            bestPilihan[tipe] = pNo;
-            foundSafe = true;
-            break;
-          }
+          if (clashInParalel) break;
         }
 
-        if (!foundSafe) {
-          isCompletelyBlocked = true;
+        if (!clashInParalel) {
+          bestPilihan[tipe] = pNo;
+          foundSafe = true;
           break;
         }
       }
 
-      if (isCompletelyBlocked && clashingSession) {
-        showToast(
-          "Gagal Menambah Mata Kuliah!",
-          `Seluruh jadwal ${matkulData.nama} bentrok. Salah satunya tertabrak dengan ${clashingSession.nama_matkul} (${clashingSession.tipe}) di hari ${clashingSession.hari} jam ${clashingSession.jam_mulai}.`,
-        );
-        return prev;
+      if (!foundSafe) {
+        isCompletelyBlocked = true;
+        break;
       }
+    }
 
-      newPilihan[kode] = bestPilihan;
-      return newPilihan;
-    });
+    // 3. Panggil Toast di sini (TIDAK di dalam setState)
+    if (isCompletelyBlocked && clashingSession) {
+      showToast(
+        "Gagal Menambah Mata Kuliah!",
+        `Seluruh jadwal ${matkulData.nama} bentrok. Salah satunya tertabrak dengan ${clashingSession.nama_matkul} (${clashingSession.tipe}) di hari ${clashingSession.hari} jam ${clashingSession.jam_mulai}.`,
+      );
+      return; // Berhenti di sini, jangan update state
+    }
+
+    // 4. Kalau aman, baru update state
+    setPilihan((prev) => ({
+      ...prev,
+      [kode]: bestPilihan,
+    }));
   };
 
   const gantiParalel = (

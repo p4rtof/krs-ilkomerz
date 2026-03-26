@@ -215,7 +215,7 @@ export default function KrsSimulatorGacor() {
 
   const theme = {
     K: "bg-indigo-600 text-white shadow-indigo-200 border-indigo-500",
-    P: "bg-teal-400 text-gray-900 shadow-teal-200 border-teal-400",
+    P: "bg-teal-400 text-white shadow-teal-100 border-teal-400",
     R: "bg-yellow-300 text-gray-900 shadow-yellow-200 border-yellow-200",
   };
 
@@ -280,7 +280,7 @@ export default function KrsSimulatorGacor() {
                 KRS <span className="text-pink-500">ILKOMERZ.</span>
               </h2>
               <p className="text-[11px] font-bold text-slate-400 mt-1 tracking-wider">
-                by Aaron
+                by Aaron 
               </p>
             </div>
           </div>
@@ -625,7 +625,7 @@ export default function KrsSimulatorGacor() {
                           const infoJadwal = m?.paralel.find((s: any) => s.tipe === tipe && s.paralel === noParalel);
                           const typeConfig = {
                             K: { label: "KULIAH", bg: "bg-indigo-100 text-indigo-700" },
-                            P: { label: "PRAKTIKUM", bg: "bg-teal-100 text-teal-700" },
+                            P: { label: "PRAKTIKUM", bg: "bg-teal-100 text-teal-600" },
                             R: { label: "RESPONSI", bg: "bg-yellow-100 text-yellow-700" },
                           }[tipe as TipeKegiatan];
 

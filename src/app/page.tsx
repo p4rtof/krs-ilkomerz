@@ -15,7 +15,7 @@ const parseTime = (timeStr: string) => {
 const isOverlap = (s1: any, s2: any) => {
   if (!s1?.hari || !s2?.hari || !s1?.jam_mulai || !s2?.jam_selesai) return false;
   
-  const hari1 = s1.hari.replace(/'/g, "");
+  const hari1 = s1.hari.replace(/'/g, ""); // "Jum'at" jadi "Jumat"
   const hari2 = s2.hari.replace(/'/g, "");
 
   if (hari1 !== hari2) return false;
@@ -30,6 +30,9 @@ export default function KrsSimulatorGacor() {
   const [pilihan, setPilihan] = useState<PilihanUser>({});
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // State baru untuk fitur "Preview Jadwal Bentrok"
+  const [expandedPreview, setExpandedPreview] = useState<Record<string, boolean>>({});
 
   const [toastMsg, setToastMsg] = useState<{
     title: string;
@@ -106,24 +109,35 @@ export default function KrsSimulatorGacor() {
     return { top, height };
   };
 
-  const toggleMatkul = (kode: string, matkulData: any) => {
+  const toggleMatkul = (kode: string, matkulData: any, completelyBlocked: boolean = false) => {
     if (!kode || !matkulData) return;
 
+    // Hapus matkul jika sudah ada
     if (pilihan[kode]) {
       setPilihan((prev) => {
         const newPilihan = { ...prev };
         delete newPilihan[kode];
         return newPilihan;
       });
+      // Tutup preview (jika ada) saat dihapus
+      setExpandedPreview(prev => { const n = {...prev}; delete n[kode]; return n; });
       return;
     }
 
+    // Jika 100% bentrok: TIDAK DITAMBAHKAN, TAPI DIBUKA PREVIEWNYA
+    if (completelyBlocked) {
+       setExpandedPreview(prev => ({...prev, [kode]: !prev[kode]}));
+       if (!expandedPreview[kode]) {
+          showToast("Mata Kuliah Bentrok!", "Semua paralel bertabrakan dengan jadwalmu. Silakan cek detail di bawah untuk strategi ulang.");
+       }
+       return; 
+    }
+
+    // Logika jika aman untuk ditambah
     const jenisTersedia = Array.from(
       new Set(matkulData.paralel.map((p: any) => p.tipe)),
     ) as string[];
     const bestPilihan: any = {};
-    let clashingSession: any = null;
-    let isCompletelyBlocked = false;
 
     for (const tipe of jenisTersedia) {
       const sesiTipeIni = matkulData.paralel.filter(
@@ -133,7 +147,6 @@ export default function KrsSimulatorGacor() {
         new Set(sesiTipeIni.map((p: any) => p.paralel)),
       ).sort() as number[];
 
-      let foundSafe = false;
       for (const pNo of unikParalels) {
         const sesiTarget = sesiTipeIni.filter((s: any) => s.paralel === pNo);
         let clashInParalel = false;
@@ -142,7 +155,6 @@ export default function KrsSimulatorGacor() {
           for (const active of jadwalAktif) {
             if (isOverlap(s, active)) {
               clashInParalel = true;
-              clashingSession = active;
               break;
             }
           }
@@ -151,23 +163,9 @@ export default function KrsSimulatorGacor() {
 
         if (!clashInParalel) {
           bestPilihan[tipe] = pNo;
-          foundSafe = true;
           break;
         }
       }
-
-      if (!foundSafe) {
-        isCompletelyBlocked = true;
-        break;
-      }
-    }
-
-    if (isCompletelyBlocked) {
-      showToast(
-        "Mata Kuliah Bentrok!",
-        `Tidak ada jadwal yang tersedia untuk ${matkulData.nama}. Semuanya bertabrakan dengan matkul lain yang sudah kamu ambil.`,
-      );
-      return;
     }
 
     setPilihan((prev) => ({
@@ -200,12 +198,13 @@ export default function KrsSimulatorGacor() {
       if (clashingSession) break;
     }
 
+    // Tolak perubahan jika bentrok
     if (clashingSession) {
       showToast(
         "Jadwal Bentrok!",
-        `Opsi ini tidak bisa dipilih karena bertabrakan dengan jadwalmu yang lain.`,
+        `Paralel ini bertabrakan dengan ${clashingSession?.nama_matkul || "Jadwal Lain"}.`,
       );
-      return;
+      return; 
     }
 
     setPilihan((prev) => ({
@@ -271,7 +270,7 @@ export default function KrsSimulatorGacor() {
         </div>
       )}
 
-      {/* PANEL KIRI - PILIH MATKUL */}
+      {/* PANEL KIRI */}
       <div className="w-full xl:w-[380px] flex flex-col gap-6 relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
@@ -292,6 +291,7 @@ export default function KrsSimulatorGacor() {
               onChange={(e) => {
                 setSemester(Number(e.target.value));
                 setPilihan({});
+                setExpandedPreview({});
               }}
             >
               <option value={2}>Pilih Semester 2</option>
@@ -307,7 +307,7 @@ export default function KrsSimulatorGacor() {
             const diambil = !!pilihan[matkul.kode];
             const tipeTersedia = Array.from(new Set(matkul.paralel.map((p: any) => p.tipe))) as TipeKegiatan[];
 
-            // [FITUR BARU] Mengecek apakah matkul ini bentrok 100% jika belum diambil
+            // Cek apakah matkul ini diblokir total jika diambil
             let isCompletelyBlocked = false;
             if (!diambil) {
               for (const tipe of tipeTersedia) {
@@ -339,6 +339,8 @@ export default function KrsSimulatorGacor() {
               }
             }
 
+            const isPreviewing = expandedPreview[matkul.kode] && isCompletelyBlocked;
+
             return (
               <div
                 key={matkul.kode}
@@ -346,13 +348,13 @@ export default function KrsSimulatorGacor() {
                   diambil
                     ? "bg-white border-pink-200 shadow-[0_8px_20px_rgb(236,72,153,0.08)] ring-1 ring-pink-100"
                     : isCompletelyBlocked
-                    ? "bg-red-50/30 border-red-100 opacity-70 hover:opacity-100 cursor-pointer"
+                    ? (isPreviewing ? "bg-red-50/60 border-red-200 shadow-md" : "bg-red-50/30 border-red-100 hover:opacity-100 cursor-pointer")
                     : "bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md cursor-pointer"
                 }`}
               >
                 <div
                   className="flex items-start gap-4 cursor-pointer"
-                  onClick={() => toggleMatkul(matkul.kode, matkul)}
+                  onClick={() => toggleMatkul(matkul.kode, matkul, isCompletelyBlocked)}
                 >
                   <div
                     className={`mt-1 flex items-center justify-center w-6 h-6 shrink-0 rounded-lg border-2 transition-colors ${diambil ? "bg-pink-500 border-pink-500" : isCompletelyBlocked ? "bg-red-100 border-red-200" : "bg-white border-slate-300"}`}
@@ -372,7 +374,6 @@ export default function KrsSimulatorGacor() {
                       <p className={`font-bold text-[14px] leading-snug tracking-tight ${diambil ? "text-indigo-950" : isCompletelyBlocked ? "text-red-900" : "text-slate-700"}`}>
                         {matkul.nama}
                       </p>
-                      {/* [FITUR BARU] Badge BENTROK */}
                       {isCompletelyBlocked && !diambil && (
                         <span className="shrink-0 text-[8px] px-2 py-0.5 rounded-md bg-red-100 text-red-600 font-black tracking-wider border border-red-200">
                           BENTROK
@@ -381,16 +382,41 @@ export default function KrsSimulatorGacor() {
                     </div>
                     
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider ${isCompletelyBlocked ? "bg-red-50 text-red-400" : "bg-slate-100 text-slate-500"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider ${isCompletelyBlocked && !diambil ? "bg-red-50 text-red-400" : "bg-slate-100 text-slate-500"}`}>
                         {matkul.kode}
                       </span>
-                      <span className={`text-[10px] font-semibold ${isCompletelyBlocked ? "text-red-300" : "text-slate-400"}`}>
+                      <span className={`text-[10px] font-semibold ${isCompletelyBlocked && !diambil ? "text-red-400/80" : "text-slate-400"}`}>
                         • {matkul.sks} SKS
                       </span>
                     </div>
                   </div>
                 </div>
 
+                {/* AREA PREVIEW JADWAL BENTROK */}
+                {isPreviewing && !diambil && (
+                  <div className="ml-10 mt-4 space-y-2 pt-4 border-t border-red-100/80">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-wider mb-2">Jadwal Tersedia:</p>
+                    {tipeTersedia.map((tipe) => {
+                      const sesiTipeIni = matkul.paralel.filter((p: any) => p.tipe === tipe);
+                      const unikParalels = Array.from(new Set(sesiTipeIni.map((p: any) => p.paralel))).sort() as number[];
+                      return (
+                        <div key={tipe} className="flex flex-col gap-1.5">
+                          {unikParalels.map(pNo => {
+                             const info = sesiTipeIni.find((s:any)=>s.paralel === pNo);
+                             return (
+                               <div key={pNo} className="flex items-center gap-2 text-[10px] bg-white p-2 rounded-lg border border-red-100 shadow-sm">
+                                 <span className="font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">{tipe}-{pNo}</span>
+                                 <span className="font-semibold text-slate-600">{info?.hari}, {info?.jam_mulai}-{info?.jam_selesai}</span>
+                               </div>
+                             )
+                          })}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* AREA AKTIF / DIAMBIL */}
                 {diambil && (
                   <div className="ml-10 mt-4 space-y-3 pt-4 border-t border-slate-100/80">
                     {tipeTersedia.map((tipe) => {
@@ -417,11 +443,10 @@ export default function KrsSimulatorGacor() {
                                 const info = sesiTipeIni.find((s: any) => s.paralel === pNo);
                                 const sesiTarget = sesiTipeIni.filter((s: any) => s.paralel === pNo);
                                 
-                                // [FITUR BARU] Cek spesifik apakah dropdown paralel ini bentrok
+                                // Cek untuk mematikan opsi dropdown yang bentrok
                                 let isOptionBentrok = false;
                                 for (const s of sesiTarget) {
                                   for (const active of jadwalAktif) {
-                                    // Abaikan pengecekan terhadap dirinya sendiri
                                     if (active.kode === matkul.kode && active.tipe === tipe) continue;
                                     if (isOverlap(s, active)) {
                                       isOptionBentrok = true;
@@ -471,7 +496,6 @@ export default function KrsSimulatorGacor() {
 
         {/* KALENDER */}
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          {/* TAMPILAN MOBILE */}
           <div className="block sm:hidden p-5">
             <h3 className="font-bold text-slate-800 tracking-tight mb-5 flex items-center gap-2">
               <div className="w-2 h-5 bg-indigo-500 rounded-full"></div> Agenda Jadwalmu
@@ -483,9 +507,7 @@ export default function KrsSimulatorGacor() {
             ) : (
               <div className="flex flex-col gap-5">
                 {days.map((day) => {
-                  const jadwalHariIni = jadwalAktif
-                    .filter((j) => j.hari.replace(/'/g, "") === day)
-                    .sort((a, b) => parseTime(a.jam_mulai) - parseTime(b.jam_mulai));
+                  const jadwalHariIni = jadwalAktif.filter((j) => j.hari.replace(/'/g, "") === day).sort((a, b) => parseTime(a.jam_mulai) - parseTime(b.jam_mulai));
                   if (jadwalHariIni.length === 0) return null;
 
                   return (
@@ -523,7 +545,6 @@ export default function KrsSimulatorGacor() {
             )}
           </div>
 
-          {/* TAMPILAN DESKTOP */}
           <div className="hidden sm:block overflow-x-auto p-6 scrollbar-hide">
             <div className="min-w-[800px]">
               <div className="flex mb-4">
@@ -581,7 +602,6 @@ export default function KrsSimulatorGacor() {
           </div>
 
           <div className="p-2 sm:p-0">
-            {/* TAMPILAN MOBILE (KARTU) */}
             <div className="flex flex-col gap-3 sm:hidden px-2 pb-4 pt-2">
               {Object.keys(pilihan).length === 0 ? (
                 <div className="p-8 text-center border border-dashed border-slate-200 rounded-2xl">
@@ -628,7 +648,6 @@ export default function KrsSimulatorGacor() {
               )}
             </div>
 
-            {/* TAMPILAN DESKTOP (TABEL) */}
             <div className="hidden sm:block overflow-x-auto p-2">
               <table className="w-full text-left border-collapse">
                 <thead>

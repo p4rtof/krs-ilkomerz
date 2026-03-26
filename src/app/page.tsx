@@ -238,7 +238,8 @@ export default function KrsSimulatorGacor() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8 font-sans flex flex-col xl:flex-row gap-8 relative overflow-hidden">
       
-      {/* TOAST NOTIFICATION */}
+      {/* ================= FIX: TOAST NOTIFICATION ================= */}
+      {/* Toast hanya dirender ke dalam HTML JIKA toastMsg itu ada isinya */}
       {toastMsg !== null && (
         <div
           className={`fixed top-8 left-1/2 z-[100] w-[90%] max-w-md transition-all duration-400 transform ${
@@ -249,8 +250,18 @@ export default function KrsSimulatorGacor() {
         >
           <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl p-4 flex gap-4 items-start">
             <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="w-4 h-4 text-red-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="3"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div className="flex-1 pr-2">
@@ -261,29 +272,43 @@ export default function KrsSimulatorGacor() {
                 {toastMsg.desc}
               </p>
             </div>
-            <button onClick={() => setToastMsg(null)} className="text-slate-500 hover:text-white transition-colors p-1">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <button
+              onClick={() => setToastMsg(null)}
+              className="text-slate-500 hover:text-white transition-colors p-1"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
       )}
 
-      {/* PANEL KIRI */}
       <div className="w-full xl:w-[380px] flex flex-col gap-6 relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
+
           <div className="flex items-center gap-4 relative z-10">
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">
                 KRS <span className="text-pink-500">ILKOMERZ.</span>
               </h2>
               <p className="text-[11px] font-bold text-slate-400 mt-1 tracking-wider">
-                by Aaron 
+                by Aaron
               </p>
             </div>
           </div>
+
           <div className="relative z-10">
             <select
               className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none ring-pink-500 focus:ring-2 focus:bg-white transition-all appearance-none cursor-pointer shadow-sm"
@@ -298,14 +323,18 @@ export default function KrsSimulatorGacor() {
               <option value={4}>Pilih Semester 4</option>
               <option value={6}>Pilih Semester 6</option>
             </select>
-            <div className="absolute right-4 top-4 pointer-events-none text-slate-400">▼</div>
+            <div className="absolute right-4 top-4 pointer-events-none text-slate-400">
+              ▼
+            </div>
           </div>
         </div>
 
         <div className="flex-1 flex flex-col gap-4 pb-10">
           {matkulSemesterIni.map((matkul) => {
             const diambil = !!pilihan[matkul.kode];
-            const tipeTersedia = Array.from(new Set(matkul.paralel.map((p: any) => p.tipe))) as TipeKegiatan[];
+            const tipeTersedia = Array.from(
+              new Set(matkul.paralel.map((p: any) => p.tipe)),
+            ) as TipeKegiatan[];
 
             // Cek apakah matkul ini diblokir total jika diambil
             let isCompletelyBlocked = false;
@@ -405,7 +434,7 @@ export default function KrsSimulatorGacor() {
                              const info = sesiTipeIni.find((s:any)=>s.paralel === pNo);
                              return (
                                <div key={pNo} className="flex items-center gap-2 text-[10px] bg-white p-2 rounded-lg border border-red-100 shadow-sm">
-                                 <span className="font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">{tipe}-{pNo}</span>
+                                 <span className="font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">{tipe}{pNo}</span>
                                  <span className="font-semibold text-slate-600">{info?.hari}, {info?.jam_mulai}-{info?.jam_selesai}</span>
                                </div>
                              )
@@ -458,7 +487,7 @@ export default function KrsSimulatorGacor() {
 
                                 return (
                                   <option key={pNo} value={pNo} disabled={isOptionBentrok}>
-                                    {tipe}-{pNo} | {info?.hari}, {info?.jam_mulai}-{info?.jam_selesai} {isOptionBentrok ? " ❌ (Bentrok)" : ""}
+                                    {tipe}{pNo} | {info?.hari}, {info?.jam_mulai}-{info?.jam_selesai} | {info?.ruangan}{isOptionBentrok ? " ❌ (Bentrok)" : ""}
                                   </option>
                                 );
                               })}
@@ -478,7 +507,6 @@ export default function KrsSimulatorGacor() {
         </div>
       </div>
 
-      {/* PANEL KANAN - KALENDER & TABEL */}
       <div className="flex-1 flex flex-col gap-6 relative z-10">
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 px-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 gap-4">
           <div className="flex gap-4 md:gap-6 text-[11px] font-black tracking-widest text-slate-500">
@@ -494,58 +522,9 @@ export default function KrsSimulatorGacor() {
           </div>
         </div>
 
-        {/* KALENDER */}
+        {/* KALENDER RESPONSIVE (Ubah ke Grid Mode buat Mobile) */}
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          <div className="block sm:hidden p-5">
-            <h3 className="font-bold text-slate-800 tracking-tight mb-5 flex items-center gap-2">
-              <div className="w-2 h-5 bg-indigo-500 rounded-full"></div> Agenda Jadwalmu
-            </h3>
-            {jadwalAktif.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-slate-200 rounded-2xl">
-                <p className="text-slate-400 font-medium text-xs">Jadwal masih kosong.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-5">
-                {days.map((day) => {
-                  const jadwalHariIni = jadwalAktif.filter((j) => j.hari.replace(/'/g, "") === day).sort((a, b) => parseTime(a.jam_mulai) - parseTime(b.jam_mulai));
-                  if (jadwalHariIni.length === 0) return null;
-
-                  return (
-                    <div key={day} className="flex flex-col gap-3">
-                      <div className="flex items-center">
-                        <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-200 shadow-sm">{day}</span>
-                      </div>
-                      <div className="flex flex-col gap-3 border-l-2 border-slate-100 ml-4 pl-4 py-1">
-                        {jadwalHariIni.map((kelas, idx) => {
-                          const styleKategori = theme[kelas.tipe as TipeKegiatan];
-                          return (
-                            <div key={idx} className={`relative rounded-xl p-3 shadow-sm ${styleKategori}`}>
-                              <div className="absolute -left-[23px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border-[3px] border-slate-300 rounded-full"></div>
-                              <div className="flex justify-between items-start mb-1.5">
-                                <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">
-                                  {kelas.jam_mulai} - {kelas.jam_selesai}
-                                </span>
-                                <span className="text-[10px] font-black bg-white/90 text-slate-800 px-2 py-0.5 rounded-md">
-                                  {kelas.tipe}-{kelas.paralel}
-                                </span>
-                              </div>
-                              <p className="text-xs font-bold leading-snug tracking-tight">{kelas.nama_matkul}</p>
-                              <p className="text-[10px] mt-1.5 font-medium opacity-90 flex items-center gap-1">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                                {kelas.ruangan}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="hidden sm:block overflow-x-auto p-6 scrollbar-hide">
+          <div className="overflow-x-auto p-6 scrollbar-hide">
             <div className="min-w-[800px]">
               <div className="flex mb-4">
                 <div className="w-16 shrink-0"></div>
@@ -577,7 +556,7 @@ export default function KrsSimulatorGacor() {
                           <div key={idx} style={{ top: pos.top, height: pos.height }} className={`absolute left-1 right-1 rounded-2xl p-2.5 shadow-lg flex flex-col transition-transform hover:scale-[1.03] hover:z-20 border border-white/20 backdrop-blur-sm ${styleKategori}`}>
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-[9px] font-bold bg-white/20 px-1.5 py-0.5 rounded-md tracking-wider">{kelas.jam_mulai}-{kelas.jam_selesai}</span>
-                              <span className="text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-0.5 rounded-md">{kelas.tipe}-{kelas.paralel}</span>
+                              <span className="text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-0.5 rounded-md">{kelas.tipe}{kelas.paralel}</span>
                             </div>
                             <p className="text-[11px] font-bold leading-tight tracking-tight mt-1 line-clamp-2">{kelas.nama_matkul}</p>
                             <p className="text-[9px] mt-auto font-medium opacity-90 truncate flex items-center gap-1">
@@ -625,14 +604,14 @@ export default function KrsSimulatorGacor() {
                           const infoJadwal = m?.paralel.find((s: any) => s.tipe === tipe && s.paralel === noParalel);
                           const typeConfig = {
                             K: { label: "KULIAH", bg: "bg-indigo-100 text-indigo-700" },
-                            P: { label: "PRAKTIKUM", bg: "bg-teal-100 text-teal-600" },
+                            P: { label: "PRAKTIKUM", bg: "bg-teal-100 text-teal-700" },
                             R: { label: "RESPONSI", bg: "bg-yellow-100 text-yellow-700" },
                           }[tipe as TipeKegiatan];
 
                           return (
                             <div key={tipe} className="flex flex-wrap items-center gap-2 text-[11px] p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
                               <span className={`px-2 py-1 rounded-md font-black text-[9px] tracking-wider ${typeConfig?.bg}`}>{typeConfig?.label}</span>
-                              <span className="font-black text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">{tipe}-{noParalel}</span>
+                              <span className="font-black text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">{tipe}{noParalel}</span>
                               <span className="font-bold text-slate-600">{infoJadwal?.hari}, <span className="text-slate-500 font-medium">{infoJadwal?.jam_mulai}-{infoJadwal?.jam_selesai}</span></span>
                               <span className="text-slate-400 font-medium flex items-center gap-1.5 w-full mt-1.5 pt-1.5 border-t border-slate-50">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
@@ -690,7 +669,7 @@ export default function KrsSimulatorGacor() {
                                 return (
                                   <div key={tipe} className="flex flex-wrap items-center gap-2 text-[11px] p-2 rounded-xl bg-slate-50 border border-slate-100/50">
                                     <span className={`px-2 py-1 rounded-lg font-black text-[9px] tracking-wider ${typeConfig?.bg}`}>{typeConfig?.label}</span>
-                                    <span className="font-black text-slate-700 bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-100">{tipe}-{noParalel}</span>
+                                    <span className="font-black text-slate-700 bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-100">{tipe}{noParalel}</span>
                                     <span className="font-bold text-slate-600">{infoJadwal?.hari}, <span className="text-slate-500 font-medium">{infoJadwal?.jam_mulai} - {infoJadwal?.jam_selesai}</span></span>
                                     <span className="text-slate-400 font-medium ml-auto flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-100">
                                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>

@@ -44,7 +44,6 @@ export default function KrsSimulatorGacor() {
   const [modeParalel, setModeParalel] = useState<"paket" | "bebas">("paket");
   const [lockedMatkul, setLockedMatkul] = useState<Set<string>>(new Set());
 
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -100,7 +99,6 @@ export default function KrsSimulatorGacor() {
       });
     });
 
-
     // Skor: sedikit hari = lebih baik (bobot 300 per hari hemat vs 5 hari)
     score -= hariSet.size * 300;
     // Skor: jam lebih pagi = lebih baik
@@ -123,23 +121,36 @@ export default function KrsSimulatorGacor() {
   const handleGenerateAI = () => {
     const selectedKodes = Object.keys(pilihan);
     if (selectedKodes.length === 0) {
-      showToast("Pilih Matkul Dulu", "Silakan klik mata kuliah di sebelah kiri terlebih dahulu.");
+      showToast(
+        "Pilih Matkul Dulu",
+        "Silakan klik mata kuliah di sebelah kiri terlebih dahulu.",
+      );
       return;
     }
 
     // Pisahkan locked vs bebas
     const freeMatkuls = selectedKodes.filter((k) => !lockedMatkul.has(k));
     const lockedPilihan: any = {};
-    selectedKodes.filter((k) => lockedMatkul.has(k)).forEach((k) => {
-      lockedPilihan[k] = pilihan[k];
-    });
+    selectedKodes
+      .filter((k) => lockedMatkul.has(k))
+      .forEach((k) => {
+        lockedPilihan[k] = pilihan[k];
+      });
 
     if (freeMatkuls.length === 0) {
-      showToast("Semua Terkunci 🔒", "Tidak ada matkul bebas untuk di-generate. Buka kunci setidaknya satu matkul.");
+      showToast(
+        "Semua Terkunci 🔒",
+        "Tidak ada matkul bebas untuk di-generate. Buka kunci setidaknya satu matkul.",
+      );
       return;
     }
 
-    const currentKeys = freeMatkuls.sort().join(",") + "|" + modeParalel + "|locked:" + Object.keys(lockedPilihan).sort().join(",");
+    const currentKeys =
+      freeMatkuls.sort().join(",") +
+      "|" +
+      modeParalel +
+      "|locked:" +
+      Object.keys(lockedPilihan).sort().join(",");
 
     if (currentKeys === lastGeneratedKeys && savedCombos.length > 0) {
       const nextIdx = (comboIndex + 1) % savedCombos.length;
@@ -151,7 +162,9 @@ export default function KrsSimulatorGacor() {
     setIsGenerating(true);
 
     setTimeout(() => {
-      const targetMatkuls = matkulSemesterIni.filter((m) => freeMatkuls.includes(m.kode));
+      const targetMatkuls = matkulSemesterIni.filter((m) =>
+        freeMatkuls.includes(m.kode),
+      );
 
       // Pre-compute jadwal locked sebagai activeList awal
       const lockedActiveList: any[] = [];
@@ -159,18 +172,22 @@ export default function KrsSimulatorGacor() {
         const matkul = matkulSemesterIni.find((m) => m.kode === kode);
         if (!matkul) return;
         Object.entries(lockedPilihan[kode]).forEach(([tipe, pNo]) => {
-          const sesi = matkul.paralel.find((p: any) => p.tipe === tipe && p.paralel === pNo);
-          if (sesi) lockedActiveList.push({
-            ...sesi,
-            startMin: parseTime(sesi.jam_mulai),
-            endMin: parseTime(sesi.jam_selesai),
-            cleanHari: sesi.hari.replace(/'/g, ""),
-          });
+          const sesi = matkul.paralel.find(
+            (p: any) => p.tipe === tipe && p.paralel === pNo,
+          );
+          if (sesi)
+            lockedActiveList.push({
+              ...sesi,
+              startMin: parseTime(sesi.jam_mulai),
+              endMin: parseTime(sesi.jam_selesai),
+              cleanHari: sesi.hari.replace(/'/g, ""),
+            });
         });
       });
 
       const isOverlapFast = (s1: any, s2: any) => {
-        if (!s1.cleanHari || !s2.cleanHari || s1.cleanHari !== s2.cleanHari) return false;
+        if (!s1.cleanHari || !s2.cleanHari || s1.cleanHari !== s2.cleanHari)
+          return false;
         return s1.startMin < s2.endMin && s1.endMin > s2.startMin;
       };
 
@@ -194,7 +211,9 @@ export default function KrsSimulatorGacor() {
           const matkul = matkulSemesterIni.find((m) => m.kode === kode);
           if (!matkul) return;
           Object.entries(allKodes[kode]).forEach(([tipe, pNo]) => {
-            const sesi = matkul.paralel.find((p: any) => p.tipe === tipe && p.paralel === pNo);
+            const sesi = matkul.paralel.find(
+              (p: any) => p.tipe === tipe && p.paralel === pNo,
+            );
             if (!sesi) return;
             hariSet.add(sesi.hari.replace(/'/g, ""));
             totalJamMulai += parseTime(sesi.jam_mulai);
@@ -213,7 +232,9 @@ export default function KrsSimulatorGacor() {
       const startTime = performance.now();
 
       const prepped = targetMatkuls.map((m) => {
-        const allTipes = Array.from(new Set(m.paralel.map((p: any) => p.tipe))) as string[];
+        const allTipes = Array.from(
+          new Set(m.paralel.map((p: any) => p.tipe)),
+        ) as string[];
         const cleanedParalel = m.paralel.map((p: any) => ({
           ...p,
           startMin: parseTime(p.jam_mulai),
@@ -225,25 +246,46 @@ export default function KrsSimulatorGacor() {
 
       // ── MODE PAKET ──
       if (modeParalel === "paket") {
-        const backtrack = (index: number, activeList: any[], currentPilihan: any) => {
+        const backtrack = (
+          index: number,
+          activeList: any[],
+          currentPilihan: any,
+        ) => {
           if (validCombos.length >= MAX_COMBOS) return;
-          if (iterations++ > MAX_ITER || performance.now() - startTime > 3000) return;
+          if (iterations++ > MAX_ITER || performance.now() - startTime > 3000)
+            return;
           if (index === prepped.length) {
-            validCombos.push({ pilihan: currentPilihan, score: scoreCombo(currentPilihan) });
+            validCombos.push({
+              pilihan: currentPilihan,
+              score: scoreCombo(currentPilihan),
+            });
             return;
           }
           const matkul = prepped[index];
           const expectedTipes = new Set(matkul.allTipes);
-          const unikParalels = Array.from(new Set(matkul.paralel.map((p: any) => p.paralel))) as number[];
+          const unikParalels = Array.from(
+            new Set(matkul.paralel.map((p: any) => p.paralel)),
+          ) as number[];
           const shuffled = [...unikParalels].sort(() => Math.random() - 0.5);
           for (const pNo of shuffled) {
-            const sesiPaket = matkul.paralel.filter((p: any) => p.paralel === pNo);
+            const sesiPaket = matkul.paralel.filter(
+              (p: any) => p.paralel === pNo,
+            );
             const paketTipes = new Set(sesiPaket.map((p: any) => p.tipe));
-            if (paketTipes.size !== expectedTipes.size || ![...expectedTipes].every((t) => paketTipes.has(t))) continue;
+            if (
+              paketTipes.size !== expectedTipes.size ||
+              ![...expectedTipes].every((t) => paketTipes.has(t))
+            )
+              continue;
             if (checkListOverlap(sesiPaket, activeList)) continue;
             const formatPilihan: any = {};
-            sesiPaket.forEach((s: any) => { formatPilihan[s.tipe] = pNo; });
-            backtrack(index + 1, [...activeList, ...sesiPaket], { ...currentPilihan, [matkul.kode]: formatPilihan });
+            sesiPaket.forEach((s: any) => {
+              formatPilihan[s.tipe] = pNo;
+            });
+            backtrack(index + 1, [...activeList, ...sesiPaket], {
+              ...currentPilihan,
+              [matkul.kode]: formatPilihan,
+            });
           }
         };
         backtrack(0, [...lockedActiveList], {});
@@ -251,21 +293,37 @@ export default function KrsSimulatorGacor() {
 
       // ── MODE BEBAS ──
       else {
-        interface Task { kode: string; tipe: string; options: any[][]; }
+        interface Task {
+          kode: string;
+          tipe: string;
+          options: any[][];
+        }
         const tasks: Task[] = [];
         prepped.forEach((m) => {
           m.allTipes.forEach((tipe: string) => {
             const sesiTipe = m.paralel.filter((p: any) => p.tipe === tipe);
-            const unikParalels = Array.from(new Set(sesiTipe.map((p: any) => p.paralel))) as number[];
-            const options = unikParalels.map((pNo) => sesiTipe.filter((p: any) => p.paralel === pNo));
+            const unikParalels = Array.from(
+              new Set(sesiTipe.map((p: any) => p.paralel)),
+            ) as number[];
+            const options = unikParalels.map((pNo) =>
+              sesiTipe.filter((p: any) => p.paralel === pNo),
+            );
             tasks.push({ kode: m.kode, tipe, options });
           });
         });
-        const backtrack = (taskIdx: number, activeList: any[], currentPilihan: any) => {
+        const backtrack = (
+          taskIdx: number,
+          activeList: any[],
+          currentPilihan: any,
+        ) => {
           if (validCombos.length >= MAX_COMBOS) return;
-          if (iterations++ > MAX_ITER || performance.now() - startTime > 3000) return;
+          if (iterations++ > MAX_ITER || performance.now() - startTime > 3000)
+            return;
           if (taskIdx === tasks.length) {
-            validCombos.push({ pilihan: currentPilihan, score: scoreCombo(currentPilihan) });
+            validCombos.push({
+              pilihan: currentPilihan,
+              score: scoreCombo(currentPilihan),
+            });
             return;
           }
           const task = tasks[taskIdx];
@@ -275,7 +333,10 @@ export default function KrsSimulatorGacor() {
             const pNo = sesiParalel[0].paralel;
             backtrack(taskIdx + 1, [...activeList, ...sesiParalel], {
               ...currentPilihan,
-              [task.kode]: { ...(currentPilihan[task.kode] || {}), [task.tipe]: pNo },
+              [task.kode]: {
+                ...(currentPilihan[task.kode] || {}),
+                [task.tipe]: pNo,
+              },
             });
           }
         };
@@ -296,7 +357,10 @@ export default function KrsSimulatorGacor() {
       } else {
         setSavedCombos([]);
         setLastGeneratedKeys("");
-        showToast("Waduh 💥", "Tidak ada kombinasi valid ditemukan. Coba ubah pilihan matkul atau longgarkan kunci.");
+        showToast(
+          "Waduh 💥",
+          "Tidak ada kombinasi valid ditemukan. Coba ubah pilihan matkul atau longgarkan kunci.",
+        );
       }
     }, 50);
   };
@@ -539,41 +603,8 @@ export default function KrsSimulatorGacor() {
           </div>
         </div>
         {/* 2. Ganti bagian tombol "Buat Jadwal" dengan ini: */}
-        {Object.keys(pilihan).length > 0 && (
-          <div className="flex flex-col gap-2">
-            {/* Toggle mode */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
-              <button
-                onClick={() => setModeParalel("paket")}
-                className={`flex-1 text-[11px] font-black py-2 rounded-lg transition-all ${modeParalel === "paket"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
-                  }`}
-              >
-                1 Paket Paralel
-              </button>
-              <button
-                onClick={() => setModeParalel("bebas")}
-                className={`flex-1 text-[11px] font-black py-2 rounded-lg transition-all ${modeParalel === "bebas"
-                  ? "bg-white text-pink-500 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
-                  }`}
-              >
-                Bebas Paralel
-              </button>
-            </div>
 
-            {/* Tombol generate */}
-            <button
-              onClick={handleGenerateAI}
-              disabled={isGenerating}
-              className="bg-indigo-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl text-center shadow-[0_4px_15px_rgb(79,70,229,0.3)] hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              {isGenerating ? "Meracik..." : "Buat Jadwal"}
-            </button>
-          </div>
-        )}
-        <div className="flex-1 flex flex-col gap-4 pb-10">
+        <div className="flex-1 flex flex-col gap-4 pb-">
           {matkulSemesterIni.map((matkul) => {
             const diambil = !!pilihan[matkul.kode];
             const tipeTersedia = Array.from(
@@ -627,30 +658,56 @@ export default function KrsSimulatorGacor() {
                 <div className="flex items-start gap-4">
                   <div
                     className="flex items-start gap-4 cursor-pointer flex-1"
-                    onClick={() => toggleMatkul(matkul.kode, matkul, isCompletelyBlocked)}
+                    onClick={() =>
+                      toggleMatkul(matkul.kode, matkul, isCompletelyBlocked)
+                    }
                   >
-                    <div className={`mt-1 flex items-center justify-center w-6 h-6 shrink-0 rounded-lg border-2 transition-colors ${diambil ? "bg-pink-500 border-pink-500" : isCompletelyBlocked ? "bg-red-100 border-red-200" : "bg-white border-slate-300"}`}>
+                    <div
+                      className={`mt-1 flex items-center justify-center w-6 h-6 shrink-0 rounded-lg border-2 transition-colors ${diambil ? "bg-pink-500 border-pink-500" : isCompletelyBlocked ? "bg-red-100 border-red-200" : "bg-white border-slate-300"}`}
+                    >
                       {diambil && (
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3.5 h-3.5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       )}
-                      {!diambil && isCompletelyBlocked && <span className="text-[10px] font-bold text-red-400">!</span>}
+                      {!diambil && isCompletelyBlocked && (
+                        <span className="text-[10px] font-bold text-red-400">
+                          !
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <p className={`font-bold text-[14px] leading-snug tracking-tight ${diambil ? "text-indigo-950" : isCompletelyBlocked ? "text-red-900" : "text-slate-700"}`}>
+                        <p
+                          className={`font-bold text-[14px] leading-snug tracking-tight ${diambil ? "text-indigo-950" : isCompletelyBlocked ? "text-red-900" : "text-slate-700"}`}
+                        >
                           {matkul.nama}
                         </p>
                         {isCompletelyBlocked && !diambil && (
-                          <span className="shrink-0 text-[8px] px-2 py-0.5 rounded-md bg-red-100 text-red-600 font-black tracking-wider border border-red-200">BENTROK</span>
+                          <span className="shrink-0 text-[8px] px-2 py-0.5 rounded-md bg-red-100 text-red-600 font-black tracking-wider border border-red-200">
+                            BENTROK
+                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider ${isCompletelyBlocked && !diambil ? "bg-red-50 text-red-400" : "bg-slate-100 text-slate-500"}`}>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider ${isCompletelyBlocked && !diambil ? "bg-red-50 text-red-400" : "bg-slate-100 text-slate-500"}`}
+                        >
                           {matkul.kode}
                         </span>
-                        <span className={`text-[10px] font-semibold ${isCompletelyBlocked && !diambil ? "text-red-400/80" : "text-slate-400"}`}>
+                        <span
+                          className={`text-[10px] font-semibold ${isCompletelyBlocked && !diambil ? "text-red-400/80" : "text-slate-400"}`}
+                        >
                           • {matkul.sks} SKS
                         </span>
                       </div>
@@ -660,13 +717,21 @@ export default function KrsSimulatorGacor() {
                   {/* Tombol kunci — hanya muncul kalau matkul sudah diambil */}
                   {diambil && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); toggleLock(matkul.kode); }}
-                      title={lockedMatkul.has(matkul.kode) ? "Klik untuk buka kunci" : "Klik untuk kunci paralel ini"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLock(matkul.kode);
+                      }}
+                      title={
+                        lockedMatkul.has(matkul.kode)
+                          ? "Klik untuk buka kunci"
+                          : "Klik untuk kunci paralel ini"
+                      }
                       className={`mt-0.5 shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all border text-sm
-                                  ${lockedMatkul.has(matkul.kode)
-                          ? "bg-amber-400 border-amber-300 text-white shadow-[0_2px_8px_rgb(251,191,36,0.4)]"
-                          : "bg-slate-100 border-slate-200 text-slate-400 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-400"
-                        }`}
+                                  ${
+                                    lockedMatkul.has(matkul.kode)
+                                      ? "bg-amber-400 border-amber-300 text-white shadow-[0_2px_8px_rgb(251,191,36,0.4)]"
+                                      : "bg-slate-100 border-slate-200 text-slate-400 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-400"
+                                  }`}
                     >
                       {lockedMatkul.has(matkul.kode) ? "🔒" : "🔓"}
                     </button>
@@ -807,7 +872,7 @@ export default function KrsSimulatorGacor() {
 
       <div className="flex-1 flex flex-col gap-6 relative z-10">
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 px-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 gap-4">
-          <div className="flex gap-4 md:gap-6 text-[11px] font-black tracking-widest text-slate-500">
+          <div className="flex gap-4 md:gap-6 text-[11px] font-black tracking-widest text-slate-500 flex-1">
             <span className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-indigo-600 shadow-[0_0_10px_rgb(79,70,229,0.5)]"></div>{" "}
               KULIAH
@@ -821,14 +886,54 @@ export default function KrsSimulatorGacor() {
               RESPONSI
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-slate-400">
-              Total Kredit Terambil
-            </span>
-            <div className="text-xl font-black text-pink-950 bg-pink-50 px-4 py-1.5 rounded-2xl border border-pink-100 shadow-sm">
-              {totalSKS}{" "}
-              <span className="text-sm font-bold text-pink-500">SKS</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3 order-2 sm:order-1">
+              <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
+                Total Kredit Terambil
+              </span>
+              <div className="text-xl font-black text-pink-950 bg-pink-50 px-4 py-1.5 rounded-2xl border border-pink-100 shadow-sm">
+                {totalSKS}{" "}
+                <span className="text-sm font-bold text-pink-500">SKS</span>
+              </div>
             </div>
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl order-1 sm:order-2">
+              <button
+                onClick={() => setModeParalel("paket")}
+                className={`px-3 py-1.5 text-[11px] font-black rounded-lg transition-all ${
+                  modeParalel === "paket"
+                    ? "bg-indigo-500 text-white shadow-sm"
+                    : "text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600"
+                }`}
+              >
+                1 Pararel
+              </button>
+              <button
+                onClick={() => setModeParalel("bebas")}
+                className={`px-3 py-1.5 text-[11px] font-black rounded-lg transition-all ${
+                  modeParalel === "bebas"
+                    ? "bg-pink-500 text-white shadow-sm"
+                    : "text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600"
+                }`}
+              >
+                Bebas
+              </button>
+            </div>
+            <button
+              onClick={handleGenerateAI}
+              disabled={isGenerating || Object.keys(pilihan).length === 0}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm px-6 py-2.5 rounded-xl shadow-xl hover:from-indigo-700 hover:to-purple-700 active:scale-[0.97] transition-all border-0 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap order-3 ml-auto sm:ml-0"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Meracik...
+                </>
+              ) : Object.keys(pilihan).length === 0 ? (
+                "Pilih Matkul"
+              ) : (
+                "Buat Jadwal"
+              )}
+            </button>
           </div>
         </div>
 

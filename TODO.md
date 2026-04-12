@@ -19,4 +19,12 @@ Status: In Progress
 
 ### 6. [x] Mark complete
 
-**Task Complete**
+**Feedback: Move Button for Better UX**
+
+### 7. [x] Relocate "Buat Jadwal" to right header/total SKS section - Always visible, better mobile UX
+
+### 8. [ ] Always visible, mobile-optimized position
+
+### 9. [ ] Test on phone/laptop
+
+### 10. [ ] Finalize task

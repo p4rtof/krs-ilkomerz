@@ -4,7 +4,7 @@
   export async function GET() {
     try {
       const response = await fetch(
-        "https://simak.ipb.ac.id/Publik/JadwalKuliah?StrataID=2&TahunSemesterID=114&MayorID=237",
+        "https://simak.ipb.ac.id/Publik/JadwalKuliah?StrataID=2&TahunSemesterID=116&MayorID=237",
       );
       const html = await response.text();
 

@@ -593,9 +593,9 @@ export default function KrsSimulatorGacor() {
                 // setPilihan({});
               }}
             >
-              <option value={2}>Pilih Semester 2</option>
-              <option value={4}>Pilih Semester 4</option>
-              <option value={6}>Pilih Semester 6</option>
+              <option value={3}>Pilih Semester 3</option>
+              <option value={5}>Pilih Semester 5</option>
+              <option value={7}>Pilih Semester 7</option>
             </select>
             <div className="absolute right-4 top-4 pointer-events-none text-slate-400">
               ▼

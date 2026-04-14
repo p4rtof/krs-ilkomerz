@@ -1,13 +1,18 @@
 # 🎓 KRS ILKOMERZ
 
-Bosan pusing nyusun jadwal kuliah yang bentrok terus? KRS ILKOMERZ hadir sebagai solusi buat mahasiswa Ilmu Komputer IPB buat simulasiin KRS dengan cerdas. Nggak cuma drag-and-drop, ada AI Assistant-nya juga!
+KRS ILKOMERZ merupakan aplikasi yang dirancang untuk membantu mahasiswa Ilmu Komputer IPB dalam menyusun rencana studi secara efisien dan bebas bentrok. Aplikasi ini menyediakan fitur simulasi penyusunan KRS yang terintegrasi dengan algoritma cerdas untuk menghasilkan jadwal yang optimal.
 
-## ✨ Fitur Utama
-- ⚡ AI Auto-Generate Jadwal: Pilih matkul yang kamu mau, klik satu tombol, dan biarkan algoritma Backtracking nyari kombinasi jadwal paling optimal (bebas bentrok!) buat kamu.
-- 🧩 Paket Paralel Otomatis: Sekali pilih paralel Kuliah, AI otomatis nyesuaiin paralel Praktikum dan Responsi-nya biar tetep se-paket (K1-P1-R1).
-- 📅 Kalender Visual Interactive: Lihat jadwal harianmu dalam bentuk grid yang rapi dengan indikator warna (Kuliah, Praktikum, Responsi).
-- 📊 SKS Counter: Pantau total beban SKS kamu secara real-time biar nggak overload.
-- 🔄 Variasi Tanpa Batas: Klik "Ganti Variasi" buat lihat ribuan kemungkinan jadwal lainnya sampai nemu yang paling pas di hati. 
+##  Fitur Utama
+- AI Auto-Generate Jadwal
+Pengguna dapat memilih mata kuliah yang diinginkan, kemudian sistem akan secara otomatis menghasilkan kombinasi jadwal terbaik menggunakan algoritma backtracking, sehingga meminimalkan kemungkinan bentrok.
+- Paket Paralel Otomatis
+Sistem secara otomatis menyesuaikan paralel kuliah dengan praktikum dan responsi yang sesuai, sehingga tetap berada dalam satu paket yang konsisten.
+- Kalender Visual Interaktif
+Jadwal ditampilkan dalam bentuk kalender berbasis grid yang terstruktur, dilengkapi dengan indikator visual untuk membedakan jenis kegiatan seperti kuliah, praktikum, dan responsi.
+- SKS Counter
+Total beban SKS ditampilkan secara real-time untuk membantu pengguna dalam mengatur beban studi secara seimbang.
+- Variasi Jadwal
+Sistem menyediakan berbagai alternatif jadwal yang dapat dipilih pengguna, sehingga memungkinkan eksplorasi kombinasi yang paling sesuai dengan preferensi masing-masing.
 
 ## 🛠️ Tech Stack
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)

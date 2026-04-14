@@ -3,8 +3,7 @@
 KRS ILKOMERZ merupakan aplikasi yang dirancang untuk membantu mahasiswa Ilmu Komputer IPB dalam menyusun rencana studi secara efisien dan bebas bentrok. Aplikasi ini menyediakan fitur simulasi penyusunan KRS yang terintegrasi dengan algoritma cerdas untuk menghasilkan jadwal yang optimal.
 
 ##  Fitur Utama
-- **AI Auto-Generate Jadwal**
-Pengguna dapat memilih mata kuliah yang diinginkan, kemudian sistem akan secara otomatis menghasilkan kombinasi jadwal terbaik menggunakan algoritma backtracking, sehingga meminimalkan kemungkinan bentrok.
+- **AI Auto-Generate Jadwal**  Pengguna dapat memilih mata kuliah yang diinginkan, kemudian sistem akan secara otomatis menghasilkan kombinasi jadwal terbaik menggunakan algoritma backtracking, sehingga meminimalkan kemungkinan bentrok.
 - **Paket Paralel Otomatis**
 Sistem secara otomatis menyesuaikan paralel kuliah dengan praktikum dan responsi yang sesuai, sehingga tetap berada dalam satu paket yang konsisten.
 - **Kalender Visual Interaktif**

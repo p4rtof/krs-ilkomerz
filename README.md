@@ -1,4 +1,4 @@
-# 🎓 KRS ILKOMERZ
+# KRS ILKOMERZ
 
 KRS ILKOMERZ merupakan aplikasi yang dirancang untuk membantu mahasiswa Ilmu Komputer IPB dalam menyusun rencana studi secara efisien dan bebas bentrok. Aplikasi ini menyediakan fitur simulasi penyusunan KRS yang terintegrasi dengan algoritma cerdas untuk menghasilkan jadwal yang optimal.
 
@@ -14,7 +14,7 @@ Total beban SKS ditampilkan secara real-time untuk membantu pengguna dalam menga
 - Variasi Jadwal
 Sistem menyediakan berbagai alternatif jadwal yang dapat dipilih pengguna, sehingga memungkinkan eksplorasi kombinasi yang paling sesuai dengan preferensi masing-masing.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
 - **Language**: TypeScript
 - **Scraper**: [Cheerio](https://cheerio.js.org/)

@@ -1,17 +1,53 @@
-  import { NextResponse } from "next/server";
-  import * as cheerio from "cheerio";
+import { NextResponse } from "next/server";
+import * as cheerio from "cheerio";
 
-  export async function GET() {
-    try {
-      const response = await fetch(
-        "https://simak.ipb.ac.id/Publik/JadwalKuliah?StrataID=2&TahunSemesterID=116&MayorID=237",
-      );
-      const html = await response.text();
+// Fungsi sakti biar kodingan auto-pilot
+function getSimakSemesterID() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // Javascript ngitung bulan dari 0, makanya + 1
 
-      const $ = cheerio.load(html);
+  // Base: Semester Ganjil 2023 = ID 116
+  const ACADEMIC_BASE_YEAR = 2023;
+  const BASE_GANJIL_ID = 116;
 
-      let currentDay = "";
-      const hasilJadwal: any[] = [];
+  // Tahun akademik IPB ganti tiap bulan Agustus (Bulan 8)
+  const academicYear = month >= 8 ? year : year - 1;
+  const selisihTahun = academicYear - ACADEMIC_BASE_YEAR;
+  
+  // Tiap tahun SIMAK nambah 3 ID (Ganjil, Genap, KKN)
+  const currentGanjilId = BASE_GANJIL_ID + (selisihTahun * 3);
+
+  // Kalo bulan 8 (Agustus) sampe 1 (Januari), berarti lagi Ganjil
+  if (month >= 8 || month === 1) {
+    return currentGanjilId;
+  } 
+  // Kalo bulan 2 (Februari) sampe 7 (Juli), berarti lagi Genap
+  else {
+    return currentGanjilId + 1; // +1 = Genap (KKN/Alih Tahun yang +2 otomatis ke-skip)
+  }
+}
+
+export async function GET() {
+  try {
+    // Panggil fungsinya di sini
+    const currentSemester = getSimakSemesterID(); 
+
+    // Masukin variabelnya ke URL fetch SIMAK
+    const response = await fetch(
+      `https://simak.ipb.ac.id/Publik/JadwalKuliah?StrataID=2&TahunSemesterID=${currentSemester}&MayorID=237`
+    );
+    const html = await response.text();
+
+    const $ = cheerio.load(html);
+
+    let currentDay = "";
+    const hasilJadwal: any[] = [];
+
+    // const $ = cheerio.load(html);
+
+    //   let currentDay = "";
+    //   const hasilJadwal: any[] = [];
 
       // daftar yang hanya 2 sks
       const daftarSKS: Record<string, number> = {

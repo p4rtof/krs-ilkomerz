@@ -20,7 +20,9 @@
         "KOM1315" : 2, // keamanan informasi
         "KOM1326" : 2, //Pengantar Kecerdasan Komputasional
         "KOM1398" : 2, //Metode Penelitian dan Telaah Pustaka
-
+        "KOM133A" : 2, //Sistem Informasi
+        "KOM2202" : 2, //Radig
+        "KOM120I" : 2, //strukdis
       };
 
       $("table tbody tr").each((_, el) => {

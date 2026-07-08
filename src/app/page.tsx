@@ -73,11 +73,6 @@ export default function KrsSimulatorGacor() {
     return dataJadwal.filter((m) => m.semester === semester);
   }, [dataJadwal, semester]);
 
-  // ============================================================
-  // GANTI SELURUH BAGIAN INI di component KrsSimulatorGacor
-  // ============================================================
-
-  // 1. Tambah helper scoring di luar component (setelah isOverlap)
   const scoreCombo = (combo: any, matkulSemesterIni: any[]) => {
     let score = 0;
     const hariSet = new Set<string>();
@@ -99,9 +94,7 @@ export default function KrsSimulatorGacor() {
       });
     });
 
-    // Skor: sedikit hari = lebih baik (bobot 300 per hari hemat vs 5 hari)
     score -= hariSet.size * 300;
-    // Skor: jam lebih pagi = lebih baik
     if (sessionCount > 0) score -= Math.floor(totalJamMulai / sessionCount);
 
     return score;
@@ -116,8 +109,6 @@ export default function KrsSimulatorGacor() {
     });
   };
 
-  // 2. Ganti handleGenerateAI dengan versi baru
-  // 3. Ganti handleGenerateAI — sekarang cabang berdasarkan modeParalel:
   const handleGenerateAI = () => {
     const selectedKodes = Object.keys(pilihan);
     if (selectedKodes.length === 0) {
@@ -128,7 +119,6 @@ export default function KrsSimulatorGacor() {
       return;
     }
 
-    // Pisahkan locked vs bebas
     const freeMatkuls = selectedKodes.filter((k) => !lockedMatkul.has(k));
     const lockedPilihan: any = {};
     selectedKodes
@@ -166,7 +156,6 @@ export default function KrsSimulatorGacor() {
         freeMatkuls.includes(m.kode),
       );
 
-      // Pre-compute jadwal locked sebagai activeList awal
       const lockedActiveList: any[] = [];
       Object.keys(lockedPilihan).forEach((kode) => {
         const matkul = matkulSemesterIni.find((m) => m.kode === kode);
@@ -205,7 +194,6 @@ export default function KrsSimulatorGacor() {
         const hariSet = new Set<string>();
         let totalJamMulai = 0;
         let sessionCount = 0;
-        // Include locked matkul ke dalam scoring biar hari tetap dihitung global
         const allKodes = { ...lockedPilihan, ...combo };
         Object.keys(allKodes).forEach((kode) => {
           const matkul = matkulSemesterIni.find((m) => m.kode === kode);
@@ -244,7 +232,6 @@ export default function KrsSimulatorGacor() {
         return { ...m, allTipes, paralel: cleanedParalel };
       });
 
-      // ── MODE PAKET ──
       if (modeParalel === "paket") {
         const backtrack = (
           index: number,
@@ -289,10 +276,7 @@ export default function KrsSimulatorGacor() {
           }
         };
         backtrack(0, [...lockedActiveList], {});
-      }
-
-      // ── MODE BEBAS ──
-      else {
+      } else {
         interface Task {
           kode: string;
           tipe: string;
@@ -344,7 +328,6 @@ export default function KrsSimulatorGacor() {
       }
 
       validCombos.sort((a, b) => b.score - a.score);
-      // Gabungkan locked + hasil generate
       const sortedPilihans = validCombos.map((c) => c.pilihan);
 
       setIsGenerating(false);
@@ -504,7 +487,7 @@ export default function KrsSimulatorGacor() {
   if (isLoading)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 font-sans">
-        <div className="w-12 h-12 border-4 border-zinc-200 border-t-pink-600 rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-zinc-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
         <p className="font-bold text-zinc-600 tracking-tight">
           Menyinkronkan dari SIMAK IPB...
         </p>
@@ -571,26 +554,22 @@ export default function KrsSimulatorGacor() {
 
       <div className="w-full xl:w-[380px] flex flex-col gap-6 relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
           <div className="flex items-center gap-4 relative z-10">
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                KRS <span className="text-pink-500">ILKOMERZ.</span>
+                KRS <span className="text-blue-600">ILKOMERZ.</span>
               </h2>
-              <p className="text-[11px] font-bold text-slate-400 mt-1 tracking-wider">
-                by Aaron
-              </p>
+
             </div>
           </div>
           <div className="relative z-10">
             <select
-              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none ring-pink-500 focus:ring-2 focus:bg-white transition-all appearance-none cursor-pointer shadow-sm"
+              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none ring-blue-500 focus:ring-2 focus:bg-white transition-all appearance-none cursor-pointer shadow-sm"
               value={semester}
               onChange={(e) => {
                 setSemester(Number(e.target.value));
                 setExpandedPreview({});
-                // Opsional: Kalo ganti semester, bersihin jadwal yang aktif biar rapi
-                // setPilihan({});
               }}
             >
               <option value={3}>Pilih Semester 3</option>
@@ -602,7 +581,6 @@ export default function KrsSimulatorGacor() {
             </div>
           </div>
         </div>
-        {/* 2. Ganti bagian tombol "Buat Jadwal" dengan ini: */}
 
         <div className="flex-1 flex flex-col gap-4 pb-">
           {matkulSemesterIni.map((matkul) => {
@@ -653,7 +631,7 @@ export default function KrsSimulatorGacor() {
             return (
               <div
                 key={matkul.kode}
-                className={`p-4 rounded-3xl transition-all duration-300 border ${diambil ? "bg-white border-pink-200 shadow-[0_8px_20px_rgb(236,72,153,0.08)] ring-1 ring-pink-100" : isCompletelyBlocked ? (isPreviewing ? "bg-red-50/60 border-red-200 shadow-md" : "bg-red-50/30 border-red-100 hover:opacity-100 cursor-pointer") : "bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md cursor-pointer"}`}
+                className={`p-4 rounded-3xl transition-all duration-300 border ${diambil ? "bg-white border-blue-200 shadow-[0_8px_20px_rgb(37,99,235,0.08)] ring-1 ring-blue-100" : isCompletelyBlocked ? (isPreviewing ? "bg-red-50/60 border-red-200 shadow-md" : "bg-red-50/30 border-red-100 hover:opacity-100 cursor-pointer") : "bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md cursor-pointer"}`}
               >
                 <div className="flex items-start gap-4">
                   <div
@@ -663,7 +641,7 @@ export default function KrsSimulatorGacor() {
                     }
                   >
                     <div
-                      className={`mt-1 flex items-center justify-center w-6 h-6 shrink-0 rounded-lg border-2 transition-colors ${diambil ? "bg-pink-500 border-pink-500" : isCompletelyBlocked ? "bg-red-100 border-red-200" : "bg-white border-slate-300"}`}
+                      className={`mt-1 flex items-center justify-center w-6 h-6 shrink-0 rounded-lg border-2 transition-colors ${diambil ? "bg-blue-600 border-blue-600" : isCompletelyBlocked ? "bg-red-100 border-red-200" : "bg-white border-slate-300"}`}
                     >
                       {diambil && (
                         <svg
@@ -714,7 +692,6 @@ export default function KrsSimulatorGacor() {
                     </div>
                   </div>
 
-                  {/* Tombol kunci — hanya muncul kalau matkul sudah diambil */}
                   {diambil && (
                     <button
                       onClick={(e) => {
@@ -808,7 +785,7 @@ export default function KrsSimulatorGacor() {
                           </label>
                           <div className="relative">
                             <select
-                              className="w-full p-2.5 pl-3 pr-8 text-[11px] border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-2 focus:ring-pink-500/50 focus:bg-white font-semibold text-slate-700 transition-all appearance-none cursor-pointer"
+                              className="w-full p-2.5 pl-3 pr-8 text-[11px] border border-slate-200 rounded-xl bg-slate-50/50 outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white font-semibold text-slate-700 transition-all appearance-none cursor-pointer"
                               value={pilihan[matkul.kode]?.[tipe] || 1}
                               onChange={(e) =>
                                 gantiParalel(
@@ -891,9 +868,9 @@ export default function KrsSimulatorGacor() {
               <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
                 Total Kredit Terambil
               </span>
-              <div className="text-xl font-black text-pink-950 bg-pink-50 px-4 py-1.5 rounded-2xl border border-pink-100 shadow-sm">
+              <div className="text-xl font-black text-blue-900 bg-blue-50 px-4 py-1.5 rounded-2xl border border-blue-100 shadow-sm">
                 {totalSKS}{" "}
-                <span className="text-sm font-bold text-pink-500">SKS</span>
+                <span className="text-sm font-bold text-blue-600">SKS</span>
               </div>
             </div>
             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl order-1 sm:order-2">
@@ -911,7 +888,7 @@ export default function KrsSimulatorGacor() {
                 onClick={() => setModeParalel("bebas")}
                 className={`px-3 py-1.5 text-[11px] font-black rounded-lg transition-all ${
                   modeParalel === "bebas"
-                    ? "bg-pink-500 text-white shadow-sm"
+                    ? "bg-blue-600 text-white shadow-sm"
                     : "text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600"
                 }`}
               >
@@ -921,7 +898,7 @@ export default function KrsSimulatorGacor() {
             <button
               onClick={handleGenerateAI}
               disabled={isGenerating || Object.keys(pilihan).length === 0}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm px-6 py-2.5 rounded-xl shadow-xl hover:from-indigo-700 hover:to-purple-700 active:scale-[0.97] transition-all border-0 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap order-3 ml-auto sm:ml-0"
+              className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black text-sm px-6 py-2.5 rounded-xl shadow-xl hover:from-indigo-700 hover:to-blue-700 active:scale-[0.97] transition-all border-0 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap order-3 ml-auto sm:ml-0"
             >
               {isGenerating ? (
                 <>
@@ -1033,7 +1010,7 @@ export default function KrsSimulatorGacor() {
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mb-10">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-6 bg-pink-500 rounded-full"></div>
+              <div className="w-2 h-6 bg-blue-600 rounded-full"></div>
               <h3 className="font-bold text-slate-800 tracking-tight">
                 Rincian Mata Kuliah Terpilih
               </h3>
@@ -1164,7 +1141,7 @@ export default function KrsSimulatorGacor() {
                           className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group"
                         >
                           <td className="p-4 pl-6 align-top">
-                            <p className="font-bold text-sm text-slate-800 group-hover:text-pink-600 transition-colors">
+                            <p className="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors">
                               {m?.nama}
                             </p>
                             <p className="text-[11px] font-bold text-slate-400 mt-0.5">
@@ -1181,7 +1158,8 @@ export default function KrsSimulatorGacor() {
                               {Object.entries(p).map(([tipe, noParalel]) => {
                                 const infoJadwal = m?.paralel.find(
                                   (s: any) =>
-                                    s.tipe === tipe && s.paralel === noParalel,
+                                    s.tipe === tipe &&
+                                    s.paralel === noParalel,
                                 );
                                 const typeConfig = {
                                   K: {
